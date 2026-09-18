@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title data-i18n="doc.title">PIXEL·TRAN — transição pixelada em WebGL</title>
+<script src="js/theme-init.js"></script>
+<script src="js/i18n.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+<meta name="description" content="PIXEL·TRAN — showcase de transição pixelada com WebGL. Um draw call, milhões de pixels, zero divs." data-i18n="meta.desc" data-i18n-attr="content" />
+</head>
+<body>
+
+  <!-- Preloader: contador 0→100% e, ao terminar, revela a cortina em transição aleatória -->
+  <div id="preloader" class="preloader" role="status" aria-live="polite" aria-label="Carregando">
+    <div class="preloader__brand"><span class="preloader__glyph">▣</span>&nbsp;<b>PIXEL</b>·TRAN</div>
+    <div class="preloader__count"><span id="preloadPct">0</span><span class="preloader__unit">%</span></div>
+    <div class="preloader__track"><div class="preloader__fill" id="preloadFill"></div></div>
+    <div class="preloader__meta">shader</div>
+  </div>
+
+  <header class="px-nav">
+    <nav class="px-pill nav-panel" id="navPanel" data-i18n="nav.label" data-i18n-attr="aria-label" aria-label="Navegação">
+      <div class="px-pill__bar">
+        <a href="#top" class="px-pill__logo" data-goto="top">
+          <span class="px-pill__logo-glyph" aria-hidden="true">▣</span>
+          <span class="px-pill__logo-text"><b>PIXEL·TRAN</b></span>
+        </a>
+        <span class="px-pill__ticker" data-i18n="nav.ticker">um draw · milhões de pixels</span>
+        <button id="navToggle" class="px-pill__toggle" type="button" aria-expanded="false" aria-controls="navPanel" data-i18n="nav.menu" data-i18n-attr="aria-label" aria-label="Menu">
+          <span class="px-toggle-line px-toggle-line--1"></span>
+          <span class="px-toggle-line px-toggle-line--2"></span>
+          <span class="px-toggle-line px-toggle-line--3"></span>
+        </button>
+      </div>
+      <div class="px-pill__drawer">
+        <ul class="px-pill__list">
+          <li class="px-pill__item">
+            <a href="#manifesto" data-goto="manifesto" class="px-pill__link">
+              <span class="px-pill__link-glyph" aria-hidden="true">→</span>
+              <span class="px-pill__link-text" data-i18n="nav.manifesto">Manifesto</span>
+              <span class="px-pill__link-idx">01</span>
+            </a>
+          </li>
+          <li class="px-pill__item">
+            <a href="#modos" data-goto="modos" class="px-pill__link">
+              <span class="px-pill__link-glyph" aria-hidden="true">→</span>
+              <span class="px-pill__link-text" data-i18n="nav.modos">Modos</span>
+              <span class="px-pill__link-idx">02</span>
+            </a>
+          </li>
+          <li class="px-pill__item">
+            <a href="#como" data-goto="como" class="px-pill__link">
+              <span class="px-pill__link-glyph" aria-hidden="true">→</span>
+              <span class="px-pill__link-text" data-i18n="nav.como">Como funciona</span>
+              <span class="px-pill__link-idx">03</span>
+            </a>
+          </li>
+        </ul>
+        <div class="px-pill__drawer-footer">
+          <a href="#top" class="px-btn" data-goto="top" data-i18n="cta.top">Voltar ao topo ↑</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="px-nav-backdrop" id="navBackdrop"></div>
+
+    <div class="px-actions">
+      <div class="lang-switch" id="langSwitch">
+        <button id="langBtn" class="pill lang-btn mono" type="button" aria-haspopup="listbox" aria-expanded="false">PT</button>
+        <ul id="langMenu" class="lang-menu" role="listbox">
+          <li role="option" data-lang="pt-BR" aria-selected="true">Português</li>
+          <li role="option" data-lang="en">English</li>
+          <li role="option" data-lang="es">Español</li>
+        </ul>
+      </div>
+      <button id="themeToggle" class="pill theme-toggle" type="button" title="Alternar tema claro/escuro" aria-label="Alternar tema claro/escuro" data-i18n="theme.title" data-i18n-attr="title,aria-label">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5 5l1.8 1.8M17.2 17.2L19 19M19 5l-1.8 1.8M6.8 17.2L5 19"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 14.2A8.5 8.5 0 0 1 9.8 3.7a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="app">
+
+    <!-- ════════ Hero ════════ -->
+    <section id="top" class="hero">
+      <div class="hero-badges">
+        <span class="tag mono">est. 2026 — webgl native</span>
+        <span class="tag mono"><span id="cell-count" class="live">—</span> <span data-i18n="badges.cells">células ativas</span></span>
+      </div>
+
+      <h1 class="hero-title">
+        <span class="line"><span class="t-solid" data-i18n="hero.a">Um draw</span>&nbsp;<span class="t-outline" data-i18n="hero.b">call.</span></span>
+        <span class="line"><span class="t-outline" data-i18n="hero.c">Milhões</span>&nbsp;<span class="t-solid" data-i18n="hero.d">de pixels.</span></span>
+      </h1>
+
+      <div class="hero-foot">
+        <p class="hero-lede" data-i18n-html="hero.lede">
+          Cada fragmento do viewport calcula sua célula, seu atraso e sua opacidade 
+          em paralelo na GPU. O JavaScript só troca <em>u_progress</em> e chama um único draw.
+        </p>
+        <a href="#modos" class="pill-cta" data-goto="modos" data-i18n="cta.explore">Explorar os modos ↓</a>
+      </div>
+
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <div class="mq-group">
+            <span data-i18n="mq.1">um draw call</span><span data-i18n="mq.2">1 triângulo</span><span data-i18n="mq.3">zero divs</span>
+            <span data-i18n="mq.4">gpu nativo</span><span data-i18n="mq.5">60 fps</span><span data-i18n="mq.6">células no shader</span>
+          </div>
+          <div class="mq-group">
+            <span data-i18n="mq.1">um draw call</span><span data-i18n="mq.2">1 triângulo</span><span data-i18n="mq.3">zero divs</span>
+            <span data-i18n="mq.4">gpu nativo</span><span data-i18n="mq.5">60 fps</span><span data-i18n="mq.6">células no shader</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ Manifesto ════════ -->
+    <section id="manifesto" class="section">
+      <div class="sec-head"><span class="sec-num">( 01 )</span><span class="sec-label" data-i18n="sec.manifesto">Manifesto</span></div>
+
+      <p class="manifesto" data-i18n="man.1">Zero divs por pixel. Nenhum loop por célula em JavaScript.</p>
+      <p class="manifesto" data-i18n-html="man.2">A grade vive no fragment shader — <em>cada fragmento decide o que pinta</em>.</p>
+      <p class="manifesto" data-i18n="man.3">Um draw call cobre a tela. Milhões de pixels, em paralelo.</p>
+
+      <div class="stats">
+        <div class="stat"><span class="stat-num" data-count="0">0</span><span class="stat-label" data-i18n="stat.divs">divs no dom</span></div>
+        <div class="stat"><span class="stat-num" data-count="60">60</span><span class="stat-label" data-i18n="stat.fps">fps alvo</span></div>
+        <div class="stat"><span class="stat-num" data-count="3">3</span><span class="stat-label" data-i18n="stat.modes">padrões de cobertura</span></div>
+        <div class="stat"><span class="stat-num" data-count="1">1</span><span class="stat-label" data-i18n="stat.draws">draw call por frame</span></div>
+      </div>
+    </section>
+
+    <!-- ════════ Modos (demo) ════════ -->
+    <section id="modos" class="section">
+      <div class="sec-head"><span class="sec-num">( 02 )</span><span class="sec-label" data-i18n="sec.modos">Modos</span></div>
+
+      <p class="sec-lede" data-i18n-html="modos.lede">
+        Clique em um padrão para cobrir a tela com ele — a mesma fórmula, indo e voltando.
+        Determinístico por célula, calculado inteiramente na GPU.
+      </p>
+
+      <div class="modes-grid">
+        <button class="mode-card" data-demo="diagonal" type="button">
+          <span class="mode-num">M·01</span>
+          <span class="mode-name" data-i18n="m.diag.name">Diagonal</span>
+          <span class="mode-desc" data-i18n="m.diag.desc">Varredura 45° somando coluna + linha. O clássico da casa.</span>
+          <span class="mode-cta" data-i18n="m.cta">testar →</span>
+        </button>
+        <button class="mode-card" data-demo="radial" type="button">
+          <span class="mode-num">M·02</span>
+          <span class="mode-name" data-i18n="m.radial.name">Radial</span>
+          <span class="mode-desc" data-i18n="m.radial.desc">Explosão do centro pela distância euclidiana das células.</span>
+          <span class="mode-cta" data-i18n="m.cta">testar →</span>
+        </button>
+        <button class="mode-card active" data-demo="random" type="button">
+          <span class="mode-num">M·03</span>
+          <span class="mode-name" data-i18n="m.rand.name">Aleatório</span>
+          <span class="mode-desc" data-i18n="m.rand.desc">Hash determinístico por célula — sempre o mesmo padrão.</span>
+          <span class="mode-cta" data-i18n="m.cta">testar →</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ════════ Como funciona ════════ -->
+    <section id="como" class="section">
+      <div class="sec-head"><span class="sec-num">( 03 )</span><span class="sec-label" data-i18n="sec.como">Como funciona</span></div>
+
+      <div class="how-steps">
+        <article class="how-step">
+          <span class="how-num">01</span>
+          <div>
+            <h3 data-i18n="how.1t">Um triângulo cobre o viewport</h3>
+            <p data-i18n-html="how.1p">Três vértices <code>(-1,-1) (3,-1) (-1,3)</code> num VBO estático. A hipotenusa <code>x+y=2</code> nunca corta o quadrado NDC <code>[-1,1]²</code> — a viewport inteira cai dentro do triângulo. O vertex shader só passa a UV <code>[0,1]</code>.</p>
+          </div>
+        </article>
+        <article class="how-step">
+          <span class="how-num">02</span>
+          <div>
+            <h3 data-i18n="how.2t">Uma grade lógica, não DOM</h3>
+            <p data-i18n-html="how.2p"><code>48×28</code> no desktop, <code>34×24</code> no tablet, <code>24×38</code> no mobile. São números que vão para o uniform <code>u_grid</code> — nenhum elemento HTML nasce por bloco. O badge "células ativas" é literal: é o produto <code>colunas × linhas</code> da grade em uso.</p>
+          </div>
+        </article>
+        <article class="how-step">
+          <span class="how-num">03</span>
+          <div>
+            <h3 data-i18n="how.3t">Cada fragmento é uma célula</h3>
+            <p data-i18n-html="how.3p"><code>cell = floor(v_uv × u_grid)</code> e um atraso por célula: a diagonal soma coluna+linha; a radial usa a distância ao centro; o aleatório consulta um hash determinístico pela posição da célula. Zero <code>Math.random()</code>.</p>
+          </div>
+        </article>
+        <article class="how-step">
+          <span class="how-num">04</span>
+          <div>
+            <h3 data-i18n="how.4t">Easing e opacidade sem divisórias</h3>
+            <p data-i18n-html="how.4p"><code>t = (u_progress − delay) / interval</code>, rampa <code>easeOutExpo</code> no shader e saída <code>vec4(u_color, a)</code>. Cada fragmento é pintado com alpha — a grade é contígua por construção, sem linhas vazias entre blocos.</p>
+          </div>
+        </article>
+        <article class="how-step">
+          <span class="how-num">05</span>
+          <div>
+            <h3 data-i18n="how.5t">Cobre → troca → revela</h3>
+            <p data-i18n-html="how.5p">A tela só é considerada coberta quando <code>u_progress = 1 + interval</code>: totalmente preta. Só então o conteúdo muda (<code>history.pushState</code> + rolagem, ou um <code>fetch</code> em páginas reais) e a revelação reutiliza o mesmo shader com progresso decrescente, sem recompilar.</p>
+          </div>
+        </article>
+        <article class="how-step">
+          <span class="how-num">06</span>
+          <div>
+            <h3 data-i18n="how.6t">Fallback e acessibilidade</h3>
+            <p data-i18n-html="how.6p">WebGL 2 → WebGL 1 → cortina CSS por opacidade. E <code>prefers-reduced-motion</code> corta a animação e troca o conteúdo na hora — a navegação nunca depende do suporte gráfico.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="tut-gap"></div>
+
+      <div class="tut-panel">
+        <span class="tut-panel__label" data-i18n="tut.flow.title">O ciclo da transição</span>
+        <div class="tut-flow">
+          <div class="tut-flow__node">
+            <span class="tut-flow__idx">A</span>
+            <b data-i18n="tut.flow.cover">cobrir</b>
+            <span class="tut-flow__note" data-i18n="tut.flow.cover.note">progresso 0 → 1</span>
+          </div>
+          <span class="tut-flow__arrow" aria-hidden="true">→</span>
+          <div class="tut-flow__node">
+            <span class="tut-flow__idx">B</span>
+            <b data-i18n="tut.flow.swap">trocar</b>
+            <span class="tut-flow__note" data-i18n-html="tut.flow.swap.note">conteúdo entra em <code>swapAt = 1.0</code></span>
+          </div>
+          <span class="tut-flow__arrow" aria-hidden="true">→</span>
+          <div class="tut-flow__node">
+            <span class="tut-flow__idx">C</span>
+            <b data-i18n="tut.flow.reveal">revelar</b>
+            <span class="tut-flow__note" data-i18n="tut.flow.reveal.note">mesmo shader, progresso decrescente</span>
+          </div>
+        </div>
+        <p class="tut-panel__foot" data-i18n-html="tut.flow.foot">Nada recopila: nos três estágios é o <em>mesmo programa</em> — só <code>u_progress</code> muda de direção.</p>
+      </div>
+
+      <div class="tut-panel">
+        <span class="tut-panel__label" data-i18n="tut.gloss.title">Decifrando os uniformes</span>
+        <dl class="tut-gloss">
+          <div class="tut-gloss__row"><dt>u_grid</dt><dd data-i18n="tut.gloss.grid">colunas × linhas da grade lógica — desktop 48×28</dd></div>
+          <div class="tut-gloss__row"><dt>u_progress</dt><dd data-i18n="tut.gloss.progress">o relógio da fase — avança no cover, volta no reveal</dd></div>
+          <div class="tut-gloss__row"><dt>u_interval</dt><dd data-i18n="tut.gloss.interval">atraso entre células vizinhas — o "espaço" entre blocos</dd></div>
+          <div class="tut-gloss__row"><dt>u_mode</dt><dd data-i18n="tut.gloss.mode">o padrão de varredura: diagonal | radial | aleatório</dd></div>
+          <div class="tut-gloss__row"><dt>u_ease</dt><dd data-i18n="tut.gloss.ease">a rampa de entrada de cada bloco (expo | cubic | linear)</dd></div>
+          <div class="tut-gloss__row"><dt>u_color</dt><dd data-i18n-html="tut.gloss.color">a cor dos blocos — ler do <code>--ink</code> do tema</dd></div>
+        </dl>
+      </div>
+
+      <pre class="codeblock">// fragment — one pixel per frag, drawn in parallel
+#version 300 es
+precision highp float;
+in vec2 v_uv;
+uniform vec2  u_grid;
+uniform float u_progress, u_interval;
+uniform int   u_mode, u_ease;
+uniform vec3  u_color;
+
+float hash(vec2 p){ p = fract(p * vec2(234.34, 435.345)); p += dot(p, p + 34.23); return fract(p.x * p.y); }
+float easeOutExpo(float t){ return t >= 1.0 ? 1.0 : 1.0 - pow(2.0, -10.0 * t); }
+
+void main() {
+  vec2 cell = floor(v_uv * u_grid);         // this fragment's cell
+  float delay = (cell.x / u_grid.x + cell.y / u_grid.y) * 0.5; // diagonal (← switch the mode here)
+  float t  = clamp((u_progress - delay) / max(u_interval, 1e-5), 0.0, 1.0);
+  float a  = easeOutExpo(t);                 // easing in the shader
+  outColor = vec4(u_color, a);               // translucent block
+}</pre>
+
+      <pre class="codeblock">// engine — everything tweakable at runtime
+PixelTransition.CONFIG.grid     = { columns: 64, rows: 36 }; // fixed grid
+PixelTransition.CONFIG.duration = 0.95;                       // s per phase
+PixelTransition.CONFIG.swapAt   = 1.0;                        // swap only when 100% black
+PixelTransition.setMode('radial');                            // 'diagonal' | 'leftright' | ...
+PixelTransition.setEasing('expo');                            // 'expo' | 'cubic' | 'linear'</pre>
+    </section>
+
+    <!-- ════════ CTA / footer ════════ -->
+    <section id="cta" class="section cta">
+      <h2 data-i18n="cta.title">Crie a sua.</h2>
+      <p data-i18n-html="cta.sub">Um arquivo. Zero imagens. Um <code>requestAnimationFrame</code>.</p>
+      <a href="#top" class="pill-cta" data-goto="top" data-i18n="cta.top">Voltar ao topo ↑</a>
+    </section>
+
+  </main>
+
+  <footer>
+    <span data-i18n="foot.show">PIXEL·TRAN — showcase</span>
+    <span data-i18n="foot.axio">AXIO · webgl pixel motif · 2026</span>
+  </footer>
+
+  <canvas id="pixelCanvas" class="pixel-transition" aria-hidden="true"></canvas>
+  <canvas id="fxCanvas" class="fx-canvas" aria-hidden="true"></canvas>
+  <div class="noise" aria-hidden="true"></div>
+  <div id="pxLock" class="px-lock" aria-hidden="true"></div>
+  <div class="px-css-cover" aria-hidden="true"></div>
+  <div id="pxError" role="status" aria-live="polite"></div>
+
+  <script src="js/gl-helpers.js"></script>
+  <script src="js/fx-trail.js"></script>
+  <script src="js/pixel-transition.js"></script>
+  <script src="js/preloader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="js/scroll-motion.js"></script>
+  <script src="js/smooth-scroll.js"></script>
+</body>
+</html>
