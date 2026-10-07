@@ -81,6 +81,12 @@ const PX_I18N = (() => {
       'foot.show': 'PIXEL·TRAN — showcase',
       'foot.axio': 'AXIO · webgl pixel motif · 2026',
       'toast.load': 'Não foi possível carregar a página — veja o console.',
+      'n404.title': '404 — PIXEL·TRAN: célula não encontrada',
+      'n404.meta': 'PIXEL·TRAN — erro 404. O pixel que você procura está fora da grade.',
+      'n404.status': '// status: 404 not found',
+      'n404.sub': 'o pixel que você procura caiu fora da grade — ou essa célula nunca foi rasterizada.',
+      'n404.cells': '0 células ativas · célula inexistente, grade intacta',
+      'n404.cta': 'Voltar ao início →',
     },
 
     en: {
@@ -158,6 +164,12 @@ const PX_I18N = (() => {
       'foot.show': 'PIXEL·TRAN — showcase',
       'foot.axio': 'AXIO · webgl pixel motif · 2026',
       'toast.load': "Couldn't load the page — check the console.",
+      'n404.title': '404 — PIXEL·TRAN: cell not found',
+      'n404.meta': 'PIXEL·TRAN — 404 error. The pixel you are after fell off the grid.',
+      'n404.status': '// status: 404 not found',
+      'n404.sub': 'the pixel you are after fell off the grid — or that cell was never rasterized.',
+      'n404.cells': '0 active cells · missing cell, grid intact',
+      'n404.cta': 'Back to start →',
     },
 
     es: {
@@ -235,6 +247,12 @@ const PX_I18N = (() => {
       'foot.show': 'PIXEL·TRAN — showcase',
       'foot.axio': 'AXIO · webgl pixel motif · 2026',
       'toast.load': 'No se pudo cargar la página — revisa la consola.',
+      'n404.title': '404 — PIXEL·TRAN: celda no encontrada',
+      'n404.meta': 'PIXEL·TRAN — error 404. El píxel que buscas quedó fuera de la grilla.',
+      'n404.status': '// estado: 404 no encontrado',
+      'n404.sub': 'el píxel que buscas se salió de la grilla — o esa celda nunca se rasterizó.',
+      'n404.cells': '0 celdas activas · celda inexistente, grilla intacta',
+      'n404.cta': 'Volver al inicio →',
     },
   };
 

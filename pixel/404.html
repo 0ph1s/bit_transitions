@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#f5f3ee" />
+<meta name="color-scheme" content="light dark" />
+<title data-i18n="n404.title">404 — PIXEL·TRAN: célula não encontrada</title>
+<script src="js/theme-init.js"></script>
+<script src="js/i18n.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+<link rel="stylesheet" href="css/404.css" />
+<meta name="description" content="PIXEL·TRAN — erro 404. O pixel que você procura está fora da grade." data-i18n="n404.meta" data-i18n-attr="content" />
+</head>
+<body>
+
+  <!-- Preloader: a MESMA abertura do index — contador 0→100% e cortina de pixels -->
+  <div id="preloader" class="preloader" role="status" aria-live="polite" aria-label="Carregando">
+    <div class="preloader__brand"><span class="preloader__glyph">▣</span>&nbsp;<b>PIXEL</b>·TRAN</div>
+    <div class="preloader__count"><span id="preloadPct">0</span><span class="preloader__unit">%</span></div>
+    <div class="preloader__track"><div class="preloader__fill" id="preloadFill"></div></div>
+    <div class="preloader__meta">shader</div>
+  </div>
+
+  <header class="px-nav">
+    <nav class="px-pill" id="navPanel">
+      <div class="px-pill__bar">
+        <a href="index.html" class="px-pill__logo" data-return>
+          <span class="px-pill__logo-glyph" aria-hidden="true">▣</span>
+          <span class="px-pill__logo-text"><b>PIXEL·TRAN</b></span>
+        </a>
+        <span class="px-pill__ticker" data-i18n="nav.ticker">um draw · milhões de pixels</span>
+        <span class="px-404__ticker mono">ERR·404</span>
+      </div>
+    </nav>
+
+    <div class="px-actions">
+      <div class="lang-switch" id="langSwitch">
+        <button id="langBtn" class="pill lang-btn mono" type="button" aria-haspopup="listbox" aria-expanded="false">PT</button>
+        <ul id="langMenu" class="lang-menu" role="listbox">
+          <li role="option" data-lang="pt-BR" aria-selected="true">Português</li>
+          <li role="option" data-lang="en">English</li>
+          <li role="option" data-lang="es">Español</li>
+        </ul>
+      </div>
+      <button id="themeToggle" class="pill theme-toggle" type="button" title="Alternar tema claro/escuro" aria-label="Alternar tema claro/escuro" data-i18n="theme.title" data-i18n-attr="title,aria-label">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5 5l1.8 1.8M17.2 17.2L19 19M19 5l-1.8 1.8M6.8 17.2L5 19"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 14.2A8.5 8.5 0 0 1 9.8 3.7a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="app">
+    <section class="px-404">
+      <span class="px-404__status mono" data-i18n="n404.status">// status: 404 not found</span>
+      <h1 class="px-404__code" aria-label="404">404</h1>
+      <p class="px-404__sub" data-i18n="n404.sub">o pixel que você procura caiu fora da grade — ou essa célula nunca foi rasterizada.</p>
+      <p class="px-404__cells mono" data-i18n="n404.cells">0 células ativas · célula inexistente, grade intacta</p>
+      <a href="index.html" class="pill-cta" data-return data-i18n="n404.cta">Voltar ao início →</a>
+    </section>
+  </main>
+
+  <canvas id="pixelCanvas" class="pixel-transition" aria-hidden="true"></canvas>
+  <div class="noise" aria-hidden="true"></div>
+  <div id="pxLock" class="px-lock" aria-hidden="true"></div>
+  <div class="px-css-cover" aria-hidden="true"></div>
+  <div id="pxError" role="status" aria-live="polite"></div>
+
+  <script src="js/gl-helpers.js"></script>
+  <script src="js/pixel-transition.js"></script>
+  <script src="js/preloader.js"></script>
+  <script>
+    /* Sai para o início com a MESMA cortina de pixels (no JS, vira link normal). */
+    (function () {
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest('[data-return]');
+        if (!a) return;
+        e.preventDefault();
+        var href = a.getAttribute('href');
+        if (window.PixelTransition) {
+          window.PixelTransition.launch(function () { location.href = href; });
+        } else {
+          location.href = href;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
