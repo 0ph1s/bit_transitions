@@ -294,6 +294,10 @@ const PX_I18N = (() => {
 
     function toggle(force) {
       const open = force != null ? force : !wrapper.classList.contains('open');
+      // Altura real do conteúdo: max-height vai de 0 ao tamanho exato, então a
+      // transição usa a curva INTEIRA (0.4s) — igual à do drawer de navegação.
+      if (open) menu.style.setProperty('--lang-h', menu.scrollHeight + 'px');
+      else menu.style.removeProperty('--lang-h');
       wrapper.classList.toggle('open', open);
       btn.setAttribute('aria-expanded', String(open));
     }

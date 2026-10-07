@@ -7,6 +7,8 @@
 
   gsap.registerPlugin(ScrollTrigger);
   gsap.defaults({ ease: 'power3.out', duration: 0.9 });
+  /* Mobile: a barra de endereço ao rolar dispara resize → evita refresh a cada frame. */
+  ScrollTrigger.config({ ignoreMobileResize: true });
 
   /* --- Marquee: clones suficientes para o trilho nunca ficar mais curto que a tela --- */
   let marqueeTween = null;
@@ -69,6 +71,15 @@
   gsap.from('.cta h2, .cta p, .cta .pill-cta', {
     y: 44, autoAlpha: 0, stagger: 0.12,
     scrollTrigger: { trigger: '#cta', start: 'top 86%' },
+  });
+
+  /* Recalcula quando as fontes chegam (muda métricas) e ao girar o aparelho. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => ScrollTrigger.refresh());
+  }
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => ScrollTrigger.refresh(), 220);
+    startMarquee();
   });
 
   ScrollTrigger.refresh();

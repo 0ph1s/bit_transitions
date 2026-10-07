@@ -66,12 +66,19 @@
   let raf = 0;
   let visible = false; // só mostra o objeto depois de um mouse de verdade
 
+  function size() {
+    return {
+      w: document.documentElement.clientWidth || innerWidth,
+      h: document.documentElement.clientHeight || innerHeight,
+    };
+  }
   function resize() {
+    const { w, h } = size();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(innerWidth * dpr);
-    canvas.height = Math.round(innerHeight * dpr);
-    canvas.style.width = innerWidth + 'px';
-    canvas.style.height = innerHeight + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -81,7 +88,14 @@
 
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType && e.pointerType !== 'mouse') return; // toque/dedo → ignora
-    visible = true;
+    if (!visible) { // primeiro movimento real de mouse: só então o rAF nasce
+      visible = true;
+      const { w, h } = size();
+      px = tx = Math.min(Math.max(e.clientX, 0), w);
+      py = ty = Math.min(Math.max(e.clientY, 0), h);
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    }
     tx = e.clientX; ty = e.clientY;
   }, { passive: true });
 
@@ -97,9 +111,10 @@
   function drawSprite(sx, sy, srot, a) {
     const dark = currentTheme() === 'dark';
     const tint = dark ? [0.92, 0.9, 0.86] : [0.0, 0.0, 0.0];
-    gl.uniform2f(u.res, innerWidth, innerHeight);
+    const { w, h } = size();
+    gl.uniform2f(u.res, w, h);
     gl.uniform2f(u.ptr, sx, sy);
-    gl.uniform1f(u.cell, CELL * (innerWidth > 768 ? 1 : 1.5));
+    gl.uniform1f(u.cell, CELL * (w > 768 ? 1 : 1.5));
     gl.uniform1f(u.rot, srot);
     gl.uniform1f(u.time, time);
     gl.uniform1f(u.alpha, a * (dark ? 0.45 : 1));
@@ -118,8 +133,6 @@
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    if (!visible) return; // sem mouse → canvas transparente, objeto nunca aparece
-
     const alpha = 1 - Math.pow(0.02, dt); // perseguição suave, independente de FPS
     px += (tx - px) * alpha;
     py += (ty - py) * alpha;
@@ -128,8 +141,8 @@
     rot += Math.min(2.6, 0.8 + speed / 90) * dt;
 
     // sem rastro: um único sprite na posição atual
-    drawSprite(px, innerHeight - py, rot, 1);
+    drawSprite(px, size().h - py, rot, 1);
   }
-
-  raf = requestAnimationFrame(loop);
+  /* Sem rAF inicial: em touch/sem mouse o canvas fica parado (e transparente).
+     O loop só nasce no primeiro pointermove de mouse. */
 })();

@@ -198,18 +198,21 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
     return true;
   }
 
-  /* Sobrecusto de contexto: mantém buffers/shader/programa; só re-cria no resize. */
+  /* Sobrecusto de contexto: mantém buffers/shader/programa; só re-cria no resize.
+     Usa clientWidth/Height (exclui a barra de rolagem) — 100vw estouraria a largura. */
   function resize() {
     if (!gl) return;
     const dpr = Math.min(window.devicePixelRatio || 1, CONFIG.dpr);
-    const w = Math.round(window.innerWidth * dpr);
-    const h = Math.round(window.innerHeight * dpr);
+    const cw = document.documentElement.clientWidth || window.innerWidth;
+    const ch = document.documentElement.clientHeight || window.innerHeight;
+    const w = Math.round(cw * dpr);
+    const h = Math.round(ch * dpr);
     if (canvas.width !== w) canvas.width = w;
     if (canvas.height !== h) canvas.height = h;
-    canvas.style.width  = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
+    canvas.style.width  = cw + 'px';
+    canvas.style.height = ch + 'px';
     gl.viewport(0, 0, w, h);
-    baseGrid = CONFIG.grid || gridPreset(window.innerWidth);
+    baseGrid = CONFIG.grid || gridPreset(cw);
     updateRenderGrid();
     // Durante a transição o draw() já limpa+e repinta a cada frame;
     // limpar aqui abriria um frame de página nua (o "pisca" na troca de idioma).
@@ -434,24 +437,89 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
   window.addEventListener('resize', updateCount, { passive: true });
   updateCount();
 
-  /* Menu hambúrguer */
+  /* Menu hambúrguer — backdrop = modal: trava a rolagem do fundo no mobile */
   const navToggle = document.getElementById('navToggle');
   const navPanel = document.getElementById('navPanel');
-  function closeMenu() {
+  function setNavOpen(open) {
     if (!navPanel) return;
-    navPanel.classList.remove('open');
-    if (navToggle) { navToggle.setAttribute('aria-expanded', 'false'); navToggle.classList.remove('open'); }
-  }
-  if (navToggle) {
-    navToggle.addEventListener('click', () => {
-      const open = navPanel.classList.toggle('open');
+    const drawer = navPanel.querySelector('.px-pill__drawer');
+    // Altura real do conteúdo: a crescer de 0 ao tamanho exato, o max-height
+    // percorre a curva inteira (0.4s) — mesma velocidade do menu de idioma.
+    if (open && drawer) drawer.style.setProperty('--drawer-h', drawer.scrollHeight + 'px');
+    else if (drawer) drawer.style.removeProperty('--drawer-h');
+    navPanel.classList.toggle('open', open);
+    document.body.classList.toggle('nav-open', open);
+    if (open) navLockY = window.scrollY;
+    if (navToggle) {
       navToggle.setAttribute('aria-expanded', String(open));
       navToggle.classList.toggle('open', open);
+    }
+  }
+  function closeMenu() { setNavOpen(false); }
+  if (navToggle) {
+    navToggle.addEventListener('click', () => {
+      setNavOpen(!navPanel.classList.contains('open'));
     });
   }
   const navBackdrop = document.getElementById('navBackdrop');
   if (navBackdrop) navBackdrop.addEventListener('click', closeMenu);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+  /* Fundo parado com o menu aberto — SEM overflow:hidden (que sumia com a
+     barra de rolagem e jogava o layout ~10px para a direita):
+     1. gestos (wheel/touch/tecla) são neutralizados aqui;
+     2. arraste da própria barra é desfeito no evento scroll;
+     3. o smooth-scroll ignora wheel/tecla enquanto nav-open. */
+  let navLockY = window.scrollY;
+  const drawerScrollable = (target) => {
+    const d = navPanel && navPanel.querySelector('.px-pill__drawer');
+    if (!d || d.scrollHeight <= d.clientHeight + 1) return false;
+    return !!(target && target.closest && target.closest('.px-pill__drawer'));
+  };
+  window.__pxNavDrawerScrolls = drawerScrollable; // o smooth-scroll consulta isto
+  function blockBgGesture(e) {
+    if (!document.body.classList.contains('nav-open')) return;
+    if (drawerScrollable(e.target)) return; // menu estourado em tela baixa: rola só ele
+    e.preventDefault();
+  }
+  document.addEventListener('wheel', blockBgGesture, { passive: false, capture: true });
+  document.addEventListener('touchmove', blockBgGesture, { passive: false, capture: true });
+  document.addEventListener('keydown', (e) => {
+    if (!document.body.classList.contains('nav-open')) return;
+    if (e.key === 'Tab') return; // navegação por teclado dentro do menu segue livre
+    if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key) && !drawerScrollable(e.target)) e.preventDefault();
+  }, true);
+  window.addEventListener('scroll', () => {
+    if (document.body.classList.contains('nav-open') && Math.abs(window.scrollY - navLockY) > 1) {
+      window.scrollTo(0, navLockY);
+    }
+  }, { passive: true });
+
+  /* Auto-hide: descer some com a nav + ações, subir traz de volta.
+     Zona morta de 14px + inversão de direção zeram o acumulador → sem tremer.
+     Sempre visível perto do topo, com o menu aberto ou durante a cortina. */
+  let hideY = window.scrollY;
+  let hideAcc = 0;
+  function setUiHidden(hidden) { document.body.classList.toggle('ui-hidden', hidden); }
+  function onUIScroll() {
+    const y = window.scrollY;
+    const dy = y - hideY;
+    hideY = y;
+    const idle = REDUCED.matches || y < 80 ||
+      !!document.querySelector('.lang-switch.open') ||
+      document.body.classList.contains('nav-open') ||
+      document.body.classList.contains('is-transitioning');
+    if (idle) {
+      hideAcc = 0;
+      if (document.body.classList.contains('ui-hidden')) setUiHidden(false);
+      return;
+    }
+    const dir = dy > 0 ? 1 : -1;
+    hideAcc = (hideAcc > 0 ? 1 : -1) === dir ? hideAcc + dy : dy;
+    if (hideAcc > 14) setUiHidden(true);
+    else if (hideAcc < -14) setUiHidden(false);
+  }
+  window.addEventListener('scroll', onUIScroll, { passive: true });
 
   /* Rolar para uma seção + refletir o link ativo */
   function scrollToSection(id) {
@@ -496,6 +564,7 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
   function applyTheme(t) {
     document.documentElement.dataset.theme = t;
     window.__fxTheme = t; // o rastro do cursor acompanha o tema
+    if (window.__pxSetThemeColor) window.__pxSetThemeColor(t); // barra de status no mobile
     try { localStorage.setItem('px-trans-theme', t); } catch (e) {}
   }
   if (themeBtn) {

@@ -69,6 +69,12 @@
   const inField = (t) => t && (t.matches('input, textarea, select, [contenteditable="true"]') || t.closest('input, textarea, select, [contenteditable="true"]'));
 
   document.addEventListener('wheel', (e) => {
+    if (BODY.classList.contains('nav-open')) {
+      // Menu aberto: fundo parado, exceto o drawer estourado (roda sozinho).
+      const allow = !!(window.__pxNavDrawerScrolls && window.__pxNavDrawerScrolls(e.target));
+      if (!allow) e.preventDefault();
+      return;
+    }
     if (inField(e.target)) return;
     e.preventDefault();
     shiftY(e.deltaY === 0 ? 0 : e.deltaY * 1.02);
@@ -85,6 +91,11 @@
   document.addEventListener('keydown', (e) => {
     if (inField(e.target)) return;
     if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) return;
+    if (BODY.classList.contains('nav-open')) {
+      const allow = !!(window.__pxNavDrawerScrolls && window.__pxNavDrawerScrolls(e.target));
+      if (!allow) e.preventDefault();
+      return;
+    } // menu aberto: fundo parado
     const mod = e.ctrlKey || e.metaKey || e.shiftKey;
     e.preventDefault();
     if (e.key === 'ArrowUp') keyStep(mod ? -html.scrollHeight : -KEY_STEP);
