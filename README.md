@@ -2,10 +2,6 @@
 
 Bit_transitions is a collection of pixel-based transition effects designed for modern web interfaces. The project explores different animation techniques to create smooth and visually engaging transitions using a pixel-inspired aesthetic.
 
-## Demo
-
-[View the live demo](https://bit-transitions-3ltdcjcs2-axio12.vercel.app/)
-
 ## Features
 
 * Pixel-based transition effects
