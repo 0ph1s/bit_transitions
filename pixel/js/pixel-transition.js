@@ -312,17 +312,19 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
   }
 
   /* ── Fallback CSS simples: sem WebGL, ainda há transição (nunca trava a navegação) ── */
+  let cssRun = 0; // identifica a transição CSS atual: timers de uma transição antiga não a encerram
   function cssLaunch() {
     const el = cssCover;
     if (!el) { instantRun(); return; }
     const ink = CONFIG.color || readInk();
     el.style.backgroundColor = 'rgb(' + Math.round(ink[0] * 255) + ',' + Math.round(ink[1] * 255) + ',' + Math.round(ink[2] * 255) + ')';
     el.style.opacity = '1';
+    const run = ++cssRun;
     setTimeout(() => {
       swapped = true;
       doSwap();
       el.style.opacity = '0';
-      const done = () => finish();
+      const done = () => { if (run === cssRun) finish(); };
       el.addEventListener('transitionend', done, { once: true });
       setTimeout(done, 400); // garantia caso transitionend não dispare
     }, 280);
@@ -359,6 +361,7 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
     if (!introHeld) return false;
     introHeld = false;
     prerevealFn = onDone || null;
+    introPrevMode = CONFIG.mode; // guarda o modo do usuário para restaurar no finish()
     CONFIG.mode = 'random'; // revelação de abertura: transição aleatória de pixel
     beginReveal(performance.now());
     return true;
@@ -399,6 +402,7 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
         if (opts.push !== false) history.pushState({}, '', href);
         window.scrollTo({ top: 0, behavior: 'auto' });
         bindModes(); // o novo conteúdo pode trazer novos mode-cards
+        if (app) bindNav(app); // e novos links de seção (só dentro do conteúdo trocado)
       } catch (err) {
         throw err; // launchTransition já revela e mostra o toast de erro
       }
@@ -538,8 +542,8 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
 
   /* Navegação entre SEÇÕES (as "páginas" deste showcase):
      cover → pushState(#id) → scroll → reveal. */
-  function bindNav() {
-    document.querySelectorAll('a[data-goto]').forEach((a) => {
+  function bindNav(root = document) {
+    root.querySelectorAll('a[data-goto]').forEach((a) => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
         if (a.closest('.nav-panel')) closeMenu(); // fecha o menu quando é do painel

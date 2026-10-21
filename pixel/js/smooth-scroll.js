@@ -80,7 +80,8 @@
     shiftY(e.deltaY === 0 ? 0 : e.deltaY * 1.02);
   }, { passive: false, capture: true });
 
-  const KEY_STEP = Math.round(window.innerHeight * 0.72);
+  // Passo de tecla calculado na hora: acompanha redimensionamentos da janela.
+  const keyStepPx = () => Math.round(window.innerHeight * 0.72);
   function keyStep(delta) {
     if (busy()) { norm(); return; }
     target += delta;
@@ -98,8 +99,8 @@
     } // menu aberto: fundo parado
     const mod = e.ctrlKey || e.metaKey || e.shiftKey;
     e.preventDefault();
-    if (e.key === 'ArrowUp') keyStep(mod ? -html.scrollHeight : -KEY_STEP);
-    else if (e.key === 'ArrowDown') keyStep(mod ? html.scrollHeight : KEY_STEP);
+    if (e.key === 'ArrowUp') keyStep(mod ? -html.scrollHeight : -keyStepPx());
+    else if (e.key === 'ArrowDown') keyStep(mod ? html.scrollHeight : keyStepPx());
     else if (e.key === 'PageUp') keyStep(-html.scrollHeight);
     else if (e.key === 'PageDown') keyStep(html.scrollHeight);
     else if (e.key === 'Home') { target = 0; tick(); }

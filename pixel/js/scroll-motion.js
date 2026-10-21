@@ -45,7 +45,7 @@
       val: target,
       duration: 1.8,
       ease: 'power2.out',
-      onUpdate: () => { el.textContent = Math.round(obj.val).toLocaleString('pt-BR'); },
+      onUpdate: () => { el.textContent = Math.round(obj.val).toLocaleString(window.__pxLang ? window.__pxLang() : 'pt-BR'); },
       scrollTrigger: { trigger: el, start: 'top 88%', once: true },
     });
   });
