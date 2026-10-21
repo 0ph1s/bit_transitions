@@ -194,6 +194,8 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
 
     resize();
     window.addEventListener('resize', resize, { passive: true });
+    // No mobile, mostrar/esconder a barra do navegador muda só o visualViewport.
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', resize, { passive: true });
     webglOK = true;
     return true;
   }
@@ -209,8 +211,8 @@ duration: 1.15,   // duração (s) POR fase — cover e reveal
     const h = Math.round(ch * dpr);
     if (canvas.width !== w) canvas.width = w;
     if (canvas.height !== h) canvas.height = h;
-    canvas.style.width  = cw + 'px';
-    canvas.style.height = ch + 'px';
+    // O tamanho exibido fica com o CSS (100% da viewport). Com px fixos aqui, a barra
+    // de endereço do mobile deixava a parte de baixo da tela sem cobertura.
     gl.viewport(0, 0, w, h);
     baseGrid = CONFIG.grid || gridPreset(cw);
     updateRenderGrid();
